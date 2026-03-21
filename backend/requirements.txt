@@ -1,0 +1,15 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.39
+aiosqlite==0.21.0
+pydub==0.25.1
+numpy==2.2.4
+python-dotenv==1.0.1
+httpx==0.28.1
+websockets==15.0.1
+pydantic==2.11.1
+pyannote.audio==3.3.2
+faster-whisper==1.1.0
+deepgram-sdk>=3.0.0
+
+scipy>=1.11.0

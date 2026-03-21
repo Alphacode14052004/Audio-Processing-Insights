@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Audio Intelligence Frontend</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --container-bg: #1e293b;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2828;
+            --border: #334155;
+            --insight-bg: #1e3a8a;
+            --insight-border: #60a5fa;
+            --success-bg: #064e3b;
+            --success-border: #34d399;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .panel {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-color);
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            background: #475569;
+            color: white;
+            font-weight: 500;
+        }
+
+        .status-badge.active { background: #15803d; }
+        .status-badge.error { background: #b91c1c; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .stream-output, .session-summary {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .log-container {
+            padding: 1rem;
+            height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .insight {
+            background: var(--insight-bg);
+            border-left: 4px solid var(--insight-border);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .insight-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-content {
+            font-size: 1rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .tag.speech { background: #059669; }
+        .tag.loud { background: #dc2626; }
+
+        .summary-content {
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #a7f3d0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mic visualization */
+        .mic-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #ef4444;
+            animation: pulse 1.5s infinite;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Audio Intelligence Hub</h1>
+        <p style="color: var(--text-muted);">Real-time microphone stream to FastAPI backend</p>
+    </div>
+
+    <div class="panel">
+        <div class="config-row">
+            <div class="input-group">
+                <label>REST API URL (HTTP)</label>
+                <input type="text" id="apiBase" value="http://127.0.0.1:8090">
+            </div>
+            <div class="input-group">
+                <label>WebSocket URL (WS)</label>
+                <input type="text" id="wsBase" value="ws://127.0.0.1:8090">
+            </div>
+        </div>
+        <div class="controls">
+            <button id="btnStart" class="btn-primary" onclick="startSession()">Start Microphone Session</button>
+            <button id="btnStop" class="btn-danger" onclick="stopSession()" disabled>Stop & Finalize</button>
+            <span id="micIndicator" class="mic-icon"></span>
+            <span id="statusBadge" class="status-badge">Disconnected</span>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="stream-output">
+            <div class="panel-header">Live Insights Stream</div>
+            <div class="log-container" id="insightsLog">
+                <div style="color: var(--text-muted); text-align: center; margin-top: 2rem;">
+                    Start a session and speak into your microphone to see live insights.
+                </div>
+            </div>
+        </div>
+        <div class="session-summary">
+            <div class="panel-header">Session Summary</div>
+            <div class="summary-content" id="summaryView">
+                Waiting for session completion...
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let audioCtx;
+    let mediaStream;
+    let sourceNode;
+    let processorNode;
+    let ws;
+    let sessionId;
+
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const statusBadge = document.getElementById('statusBadge');
+    const micIndicator = document.getElementById('micIndicator');
+    const insightsLog = document.getElementById('insightsLog');
+    const summaryView = document.getElementById('summaryView');
+
+    function updateStatus(text, type='normal') {
+        statusBadge.innerText = text;
+        statusBadge.className = 'status-badge ' + type;
+    }
+
+    async function startSession() {
+        // Reset UI
+        insightsLog.innerHTML = '';
+        summaryView.innerHTML = 'Waiting for session completion...';
+        btnStart.disabled = true;
+        
+        updateStatus('Requesting Session...', 'normal');
+
+        const apiBase = document.getElementById('apiBase').value;
+        try {
+            const res = await fetch(`${apiBase}/sessions/start`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({device_id: 'web-browser'})
+            });
+            if (!res.ok) throw new Error('Failed to start session: ' + res.statusText);
+            
+            const data = await res.json();
+            sessionId = data.session_id;
+            updateStatus('Session Active: ' + sessionId.split('-')[0], 'active');
+            
+            await startStreaming();
+        } catch(err) {
+            updateStatus('Connection Error', 'error');
+            console.error(err);
+            alert("Failed to start session: " + err.message);
+            btnStart.disabled = false;
+        }
+    }
+
+    async function startStreaming() {
+        const wsBase = document.getElementById('wsBase').value;
+        ws = new WebSocket(`${wsBase}/ws/${sessionId}`);
+        
+        ws.onopen = async () => {
+            btnStop.disabled = false;
+            try {
+                // Request microphone
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, 
+                    video: false
+                });
+                micIndicator.style.display = 'inline-block';
+                
+                // Initialize audio context at 16000 Hz
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                sourceNode = audioCtx.createMediaStreamSource(mediaStream);
+                
+                // Buffer size 4096 = ~256ms at 16kHz
+                processorNode = audioCtx.createScriptProcessor(4096, 1, 1);
+                
+                sourceNode.connect(processorNode);
+                processorNode.connect(audioCtx.destination);
+                
+                processorNode.onaudioprocess = (e) => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        const inputData = e.inputBuffer.getChannelData(0);
+                        // Convert Float32 to Int16
+                        const pcm16 = new Int16Array(inputData.length);
+                        for (let i = 0; i < inputData.length; ++i) {
+                            let s = Math.max(-1, Math.min(1, inputData[i]));
+                            pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                        }
+                        // Send raw binary buffer
+                        ws.send(pcm16.buffer);
+                    }
+                };
+            } catch (err) {
+                updateStatus('Mic Error', 'error');
+                console.error(err);
+                alert('Microphone access denied or error: ' + err.message);
+                btnStop.click();
+            }
+        };
+        
+        ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'insight') {
+                renderInsight(msg.data);
+            } else if (msg.type === 'session_complete') {
+                updateStatus('Done', 'normal');
+                btnStart.disabled = false;
+                btnStop.disabled = true;
+                micIndicator.style.display = 'none';
+                summaryView.innerHTML = JSON.stringify(msg.data, null, 2);
+            } else if (msg.type === 'error') {
+                console.error("Backend error:", msg);
+                const tag = document.createElement('div');
+                tag.style.color = "var(--danger)";
+                tag.style.fontSize = "0.8rem";
+                tag.innerText = "Error: " + msg.message;
+                insightsLog.prepend(tag);
+            }
+        };
+        
+        ws.onclose = () => {
+            if (btnStop.disabled === false) { // Unexpected close
+                updateStatus('Disconnected', 'error');
+            }
+            stopMic();
+            btnStart.disabled = false;
+            btnStop.disabled = true;
+            micIndicator.style.display = 'none';
+        };
+    }
+
+    function renderInsight(data) {
+        const el = document.createElement('div');
+        el.className = 'insight';
+        
+        let soundClass = data.sound_type === 'speech' ? 'tag speech' : 'tag';
+        let loudClass = data.loudness_label.includes('loud') ? 'tag loud' : 'tag';
+
+        let html = `<div class="insight-meta">${data.timestamp_ms}ms | ID: ${data.insight_id.split('-')[0]}</div>`;
+        html += `<div class="insight-content">`;
+        if (data.speaker_label) {
+            html += `<span style="font-weight: bold; margin-right: 0.5rem; color: #93c5fd">${data.speaker_label}</span>`;
+        }
+        html += `<span class="${soundClass}">${data.sound_type}</span>`;
+        html += `<span class="${loudClass}">${data.loudness_label}</span>`;
+        if (data.distance_label) html += `<span class="tag">${data.distance_label}</span>`;
+        html += `</div>`;
+
+        if (data.transcript) {
+            html += `<div style="margin-top: 0.5rem; font-style: italic; color: #e2e8f0;">"${data.transcript}"</div>`;
+        }
+
+        el.innerHTML = html;
+        insightsLog.prepend(el);
+    }
+
+    function stopMic() {
+        if (processorNode) { processorNode.disconnect(); processorNode = null; }
+        if (sourceNode) { sourceNode.disconnect(); sourceNode = null; }
+        if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+        if (audioCtx) { audioCtx.close(); audioCtx = null; }
+    }
+
+    function stopSession() {
+        updateStatus('Finalizing...', 'normal');
+        btnStop.disabled = true;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({type: 'stop'}));
+        } else {
+            stopMic();
+            updateStatus('Disconnected', 'normal');
+            btnStart.disabled = false;
+            micIndicator.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>

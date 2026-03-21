@@ -1,0 +1,10 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.venv_wsl/
+backend/recordings/
+backend/*.db
+backend/*.sqlite3
+backend/.env
+react-native/.expo/
+react-native/node_modules/
