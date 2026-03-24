@@ -25,7 +25,6 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 With server running in one terminal:
 
 ```bash
-cd /mnt/c/Users/Venkataraman\ P/Documents/Code/Audio_Processing_Flow
 source .venv_wsl/bin/activate
 python test_pipeline.py
 ```
