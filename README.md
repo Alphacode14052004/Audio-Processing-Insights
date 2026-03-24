@@ -5,7 +5,6 @@ Backend-only FastAPI service for real-time audio chunk processing over WebSocket
 ## WSL + venv setup (recommended)
 
 ```bash
-cd /mnt/c/Users/Venkataraman\ P/Documents/Code/Audio_Processing_Flow
 python3 -m venv .venv_wsl
 source .venv_wsl/bin/activate
 python -m pip install --upgrade pip
@@ -15,7 +14,6 @@ pip install -r backend/requirements.txt
 ## Run the API from WSL
 
 ```bash
-cd /mnt/c/Users/Venkataraman\ P/Documents/Code/Audio_Processing_Flow/backend
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
